@@ -84,6 +84,40 @@ def day_of_the_week_frequency(df):
     plt.title('Occurrences of Each Day of the Week')
     plt.show()
 
+def most_played_day_of_week(df, num):
+    """Plots a 2x4 subplot grid displaying the (num) most popular songs on each of the seven days of the week
+    Consider adding a year parameter to do it based on a desired year or frame.
+    """
+    df['date'] = pd.to_datetime(df['date'])
+    df['day_of_week'] = df['date'].dt.day_name()
+    songs_by_day = {day: [] for day in df['day_of_week'].unique()}
+    
+    for index, row in df.iterrows():
+        day = row['day_of_week']
+        for col in ['set1', 'set2', 'set3', 'encore']:
+            songs_by_day[day].extend(row[col])
+    
+    for day in df["day_of_week"].unique():
+        songs_by_day[day] = [song for song in songs_by_day[day] if song not in ["Drums", "Space"]]
+
+    song_counts_by_day = {day: Counter(songs) for day, songs in songs_by_day.items()}
+    sorted_songs_by_day = {day: dict(counts.most_common(num)) for day, counts in song_counts_by_day.items()}
+
+    fig, axes = plt.subplots(nrows=2, ncols=4, figsize=(16, 8))
+    axes = axes.ravel()
+
+    for i, (day, top_songs) in enumerate(sorted_songs_by_day.items()):
+        ax = axes[i]
+        ax.bar(top_songs.keys(), top_songs.values(), color=colors, edgecolor='black')
+        ax.set_title(day)
+        ax.set_xlabel('Song')
+        ax.set_ylabel('Popularity')
+        ax.tick_params(axis='x', rotation=90)
+
+    plt.tight_layout()
+    plt.show()
+
+
 if __name__ == "__main__":
     # Load the dataframe
     df = pd.read_csv("/Users/mwshumway/Desktop/DeadAndCo/setlists.csv")
@@ -94,5 +128,6 @@ if __name__ == "__main__":
     print("All time number of total songs played: " + str(num_total_songs(df)))
     print("All time number of distinct songs played: " + str(num_distinct_songs(df)))
     # all_time_most_played(df, 50, 2024)  
-    day_of_the_week_frequency(df)
+    # day_of_the_week_frequency(df)
+    most_played_day_of_week(df, 5)
     
